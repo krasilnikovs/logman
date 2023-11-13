@@ -6,30 +6,32 @@ import (
 	"net/http"
 )
 
+// Router is alias to http.Handler
 type Router http.Handler
 
-type Server struct {
+// ApiServer contains main things related to incoming input requests
+type ApiServer struct {
 	l   *slog.Logger
 	cfg ServerConfiguration
 	r   Router
 }
 
-func NewServer(logger *slog.Logger, cfg ServerConfiguration, r Router) *Server {
+// NewApiServer constructs ApiServer
+func NewApiServer(logger *slog.Logger, cfg ServerConfiguration, r Router) *ApiServer {
 	if logger == nil {
 		logger = NewDefaultJsonLogger()
 	}
 
-	return &Server{
+	return &ApiServer{
 		l:   logger,
 		cfg: cfg,
 		r:   r,
 	}
 }
 
-func (s *Server) Run() error {
+// Run method launch ApiServer, in case of some error it will return error
+func (s *ApiServer) Run() error {
 	s.l.Info("Server is running", slog.String("port", s.cfg.Port))
 
-	http.ListenAndServe(fmt.Sprintf(":%s", s.cfg.Port), s.r)
-
-	return nil
+	return http.ListenAndServe(fmt.Sprintf(":%s", s.cfg.Port), s.r)
 }
