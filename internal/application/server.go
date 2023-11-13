@@ -12,12 +12,12 @@ type Router http.Handler
 // ApiServer contains main things related to incoming input requests
 type ApiServer struct {
 	l   *slog.Logger
-	cfg ServerConfiguration
+	cfg ApiServerConfiguration
 	r   Router
 }
 
 // NewApiServer constructs ApiServer
-func NewApiServer(logger *slog.Logger, cfg ServerConfiguration, r Router) *ApiServer {
+func NewApiServer(logger *slog.Logger, cfg ApiServerConfiguration, r Router) *ApiServer {
 	if logger == nil {
 		logger = NewDefaultJsonLogger()
 	}

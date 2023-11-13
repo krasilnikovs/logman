@@ -21,7 +21,7 @@ func main() {
 
 	registerRoutes(r)
 
-	configuration := application.ServerConfiguration{}
+	configuration := application.ApiServerConfiguration{}
 	logger := application.NewDefaultJsonLogger()
 
 	if err := cleanenv.ReadEnv(&configuration); err != nil {
