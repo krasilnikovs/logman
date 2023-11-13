@@ -7,6 +7,8 @@ type Configuration struct {
 	// AppEnv contains current environment the value gets from "LOGMAN_ENV" environment variable
 	// if the environment variable is not set then by default will use development environment
 	AppEnv string `env:"LOGMAN_ENV" env-default:"dev"`
+
+	DataStoragePath string `env:"LOGMAN_DB_PATH" env-default:"var/data"`
 }
 
 // A ApiServerConfiguration contains application config related to api server
