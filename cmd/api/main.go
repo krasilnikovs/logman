@@ -1,8 +1,10 @@
-// Package main in cmd/api directory contains codes which initilize api server, read configurations, create services.
+// Package main in cmd/api directory contains codes which initialize api server, read configurations, create services.
 package main
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"log/slog"
 
 	"github.com/go-chi/chi/v5"
@@ -14,6 +16,8 @@ import (
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 const (
@@ -52,32 +56,39 @@ func registerRoutes(r *chi.Mux) {
 	r.Get("/", handler.Index)
 }
 
+// runMigrations method up the migrations
 func runMigrations(cfg application.ApiServerConfiguration) error {
 
 	db, err := sql.Open(driverName, cfg.DataStoragePath)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("can not open connection: %w", err)
 	}
+
+	defer db.Close()
 
 	driver, err := sqlite3.WithInstance(db, &sqlite3.Config{})
 
 	if err != nil {
-		return err
+		return fmt.Errorf("can not create driver: %w", err)
 	}
 
+	defer driver.Close()
+
 	mgr, err := migrate.NewWithDatabaseInstance(
-		"file:///migrations",
+		"file://migrations",
 		driverName,
 		driver,
 	)
 
 	if err != nil {
-		return err
+		return fmt.Errorf("can not create migrate instance: %w", err)
 	}
 
-	if err = mgr.Up(); err != nil {
-		return err
+	defer mgr.Close()
+
+	if err = mgr.Up(); err != nil && !errors.Is(err, migrate.ErrNoChange) {
+		return fmt.Errorf("execute migration failed: %w", err)
 	}
 
 	return nil
