@@ -56,15 +56,16 @@ func main() {
 // registerRoutes method initialized routes
 func registerRoutes(r *chi.Mux, cfg application.ApiServerConfiguration) {
 
-	infoLogHandlers := handler.NewLogInfoHandlers(
-		service.NewLogInfoService(
-			storage.NewLogInfoStorage(cfg.DataStoragePath),
+	serverHandlers := handler.NewServerHandlers(
+		service.NewServerService(
+			storage.NewServerStorage(cfg.DataStoragePath),
 		),
 	)
 
 	r.Get("/", handler.Index)
 
-	r.Get("/api/v1/log-infos/{id:\\d+}", infoLogHandlers.FetchLogInfoById)
+	r.Get("/api/v1/servers/{id:\\d+}", serverHandlers.FetchById)
+	r.Post("/api/v1/servers", serverHandlers.Create)
 }
 
 // runMigrations method up the migrations

@@ -1,0 +1,97 @@
+package service
+
+import (
+	"context"
+	"fmt"
+	"time"
+
+	"github.com/krasilnikovm/logman/internal/entity"
+)
+
+type ServerStorager interface {
+	Create(ctx context.Context, server *entity.Server) error
+	GetById(ctx context.Context, id int) (*entity.Server, error)
+}
+
+type ServerServiceContract interface {
+	Create(ctx context.Context, data ServerData) (*ServerResponse, error)
+	FetchById(ctx context.Context, id int) (*ServerResponse, error)
+}
+
+type ServerData struct {
+	Name        string           `json:"name"`
+	Host        string           `json:"host"`
+	LogLocation LogLocationModel `json:"logLocation"`
+}
+
+type ServerResponse struct {
+	Id          int              `json:"id"`
+	Name        string           `json:"name"`
+	Host        string           `json:"host"`
+	LogLocation LogLocationModel `json:"logLocation"`
+	CreatedAt   time.Time        `json:"createdAt"`
+	UpdatedAt   time.Time        `json:"updatedAt"`
+}
+
+type LogLocationModel struct {
+	Path   string `json:"path"`
+	Format string `json:"format"`
+}
+
+type ServerService struct {
+	storage ServerStorager
+}
+
+func NewServerService(storage ServerStorager) *ServerService {
+	return &ServerService{
+		storage: storage,
+	}
+}
+
+func (l *ServerService) FetchById(ctx context.Context, id int) (*ServerResponse, error) {
+	server, err := l.storage.GetById(ctx, id)
+
+	if err != nil {
+		return nil, fmt.Errorf("error during Server search by id: %w", err)
+	}
+
+	if server == nil {
+		return nil, nil
+	}
+
+	return createServerResponseFromServerEntity(*server), nil
+}
+
+func (l *ServerService) Create(ctx context.Context, data ServerData) (*ServerResponse, error) {
+
+	server := &entity.Server{
+		Name: data.Name,
+		Host: data.Host,
+		LogLocation: entity.LogLocation{
+			Path:   data.LogLocation.Path,
+			Format: data.LogLocation.Format,
+		},
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+	}
+
+	if err := l.storage.Create(ctx, server); err != nil {
+		return nil, fmt.Errorf("error during creating server: %w", err)
+	}
+
+	return createServerResponseFromServerEntity(*server), nil
+}
+
+func createServerResponseFromServerEntity(s entity.Server) *ServerResponse {
+	return &ServerResponse{
+		Id:   s.Id,
+		Name: s.Name,
+		Host: s.Host,
+		LogLocation: LogLocationModel{
+			Path:   s.LogLocation.Path,
+			Format: s.LogLocation.Format,
+		},
+		CreatedAt: s.CreatedAt,
+		UpdatedAt: s.UpdatedAt,
+	}
+}
