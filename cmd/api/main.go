@@ -13,6 +13,8 @@ import (
 
 	"github.com/krasilnikovm/logman/internal/application"
 	"github.com/krasilnikovm/logman/internal/handler"
+	"github.com/krasilnikovm/logman/internal/service"
+	storage "github.com/krasilnikovm/logman/internal/storage/sqlite"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/golang-migrate/migrate/v4/database/sqlite3"
@@ -31,14 +33,14 @@ func main() {
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
-	registerRoutes(r)
-
 	configuration := application.ApiServerConfiguration{}
 	logger := application.NewDefaultJsonLogger()
 
 	if err := cleanenv.ReadEnv(&configuration); err != nil {
 		logger.Error("can not read envs", slog.String("error", err.Error()))
 	}
+
+	registerRoutes(r, configuration)
 
 	if err := runMigrations(configuration); err != nil {
 		logger.Error("migrations is not executed", slog.String("error", err.Error()))
@@ -52,8 +54,17 @@ func main() {
 }
 
 // registerRoutes method initialized routes
-func registerRoutes(r *chi.Mux) {
+func registerRoutes(r *chi.Mux, cfg application.ApiServerConfiguration) {
+
+	infoLogHandlers := handler.NewLogInfoHandlers(
+		service.NewLogInfoService(
+			storage.NewLogInfoStorage(cfg.DataStoragePath),
+		),
+	)
+
 	r.Get("/", handler.Index)
+
+	r.Get("/api/v1/log-infos/{id:\\d+}", infoLogHandlers.FetchLogInfoById)
 }
 
 // runMigrations method up the migrations

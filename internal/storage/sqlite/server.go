@@ -15,7 +15,6 @@ type ServerStorage struct {
 	dbPath string
 }
 
-// NewServerStorage constructor method
 func NewServerStorage(dbPath string) *ServerStorage {
 	return &ServerStorage{
 		dbPath: dbPath,
