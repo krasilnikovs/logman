@@ -1,7 +1,5 @@
 package entity
 
-import "time"
-
 type LogLocation struct {
 	Path   string
 	Format string
@@ -12,6 +10,6 @@ type Server struct {
 	Name        string
 	Host        string
 	LogLocation LogLocation
-	CreatedAt   time.Time
-	UpdatedAt   time.Time
+	CreatedAt   string
+	UpdatedAt   string
 }

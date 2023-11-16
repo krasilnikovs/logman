@@ -29,8 +29,8 @@ type ServerResponse struct {
 	Name        string           `json:"name"`
 	Host        string           `json:"host"`
 	LogLocation LogLocationModel `json:"logLocation"`
-	CreatedAt   time.Time        `json:"createdAt"`
-	UpdatedAt   time.Time        `json:"updatedAt"`
+	CreatedAt   string           `json:"createdAt"`
+	UpdatedAt   string           `json:"updatedAt"`
 }
 
 type LogLocationModel struct {
@@ -63,6 +63,7 @@ func (l *ServerService) FetchById(ctx context.Context, id int) (*ServerResponse,
 }
 
 func (l *ServerService) Create(ctx context.Context, data ServerData) (*ServerResponse, error) {
+	now := time.Now()
 
 	server := &entity.Server{
 		Name: data.Name,
@@ -71,8 +72,8 @@ func (l *ServerService) Create(ctx context.Context, data ServerData) (*ServerRes
 			Path:   data.LogLocation.Path,
 			Format: data.LogLocation.Format,
 		},
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+		CreatedAt: now.Format(time.RFC3339),
+		UpdatedAt: now.Format(time.RFC3339),
 	}
 
 	if err := l.storage.Create(ctx, server); err != nil {

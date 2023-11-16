@@ -48,8 +48,8 @@ func (s *ServerStorage) Create(ctx context.Context, server *entity.Server) error
 		server.Host,
 		server.LogLocation.Path,
 		server.LogLocation.Format,
-		&server.CreatedAt,
-		&server.UpdatedAt,
+		server.CreatedAt,
+		server.UpdatedAt,
 	)
 
 	if err != nil {
