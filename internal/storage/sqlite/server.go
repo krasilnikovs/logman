@@ -195,3 +195,41 @@ func (s *ServerStorage) GetList(ctx context.Context, limit, page int) ([]entity.
 
 	return servers, nil
 }
+
+func (s *ServerStorage) Update(ctx context.Context, server *entity.Server, id int) error {
+	db, err := sql.Open(driverName, s.connStr)
+
+	if err != nil {
+		return fmt.Errorf("can not open sqlite connection: %w", err)
+	}
+
+	defer db.Close()
+
+	stmt, err := db.PrepareContext(
+		ctx,
+		"UPDATE servers SET name = ?, host = ?, log_location_path = ?, log_location_format = ?, updated_at = ? WHERE id = ?;",
+	)
+
+	if err != nil {
+		return fmt.Errorf("error during preparing query: %w", err)
+	}
+
+	defer stmt.Close()
+
+	_, err = stmt.ExecContext(
+		ctx,
+		server.Name,
+		server.Host,
+		server.LogLocation.Path,
+		server.LogLocation.Format,
+		server.UpdatedAt,
+		id,
+	)
+
+	if err != nil {
+		return fmt.Errorf("query execution failed: %w", err)
+	}
+
+	return nil
+
+}

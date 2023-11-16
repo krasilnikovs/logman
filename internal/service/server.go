@@ -14,6 +14,7 @@ type ServerStorager interface {
 	GetById(ctx context.Context, id int) (*entity.Server, error)
 	DeleteById(ctx context.Context, id int) error
 	GetList(ctx context.Context, limit, page int) ([]entity.Server, error)
+	Update(ctx context.Context, server *entity.Server, id int) error
 }
 
 type ServerServiceContract interface {
@@ -21,6 +22,7 @@ type ServerServiceContract interface {
 	FetchById(ctx context.Context, id int) (*ServerResponse, error)
 	DeleteById(ctx context.Context, id int) error
 	GetList(ctx context.Context, limit, page int) ([]ServerResponse, error)
+	Update(ctx context.Context, id int, data ServerData) (*ServerResponse, error)
 }
 
 type ServerData struct {
@@ -111,6 +113,34 @@ func (s *ServerService) GetList(ctx context.Context, limit, page int) ([]ServerR
 	}
 
 	return responses, nil
+}
+
+func (s *ServerService) Update(ctx context.Context, id int, data ServerData) (*ServerResponse, error) {
+	server, err := s.storage.GetById(ctx, id)
+
+	if err != nil {
+		return nil, fmt.Errorf("error during Server search by id: %w", err)
+	}
+
+	if server == nil {
+		return nil, nil
+	}
+
+	now := time.Now()
+
+	server.Name = data.Name
+	server.Host = data.Host
+	server.LogLocation = entity.LogLocation{
+		Path:   data.LogLocation.Path,
+		Format: data.LogLocation.Format,
+	}
+	server.UpdatedAt = now.Format(time.RFC3339)
+
+	if err := s.storage.Update(ctx, server, id); err != nil {
+		return nil, fmt.Errorf("error during updating server: %w", err)
+	}
+
+	return createServerResponseFromServerEntity(*server), nil
 }
 
 func createServerResponseFromServerEntity(s entity.Server) *ServerResponse {

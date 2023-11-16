@@ -110,3 +110,30 @@ func (s *ServerHandlers) GetList(w http.ResponseWriter, r *http.Request) {
 
 	writeOkJson(w, response)
 }
+
+func (s *ServerHandlers) Update(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var requestBody service.ServerData
+
+	err = json.NewDecoder(r.Body).Decode(&requestBody)
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	response, err := s.serverService.Update(r.Context(), id, requestBody)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writeOkJson(w, response)
+}
