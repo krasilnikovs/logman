@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/krasilnikovm/logman/internal/entity"
@@ -12,12 +13,14 @@ type ServerStorager interface {
 	Create(ctx context.Context, server *entity.Server) error
 	GetById(ctx context.Context, id int) (*entity.Server, error)
 	DeleteById(ctx context.Context, id int) error
+	GetList(ctx context.Context, limit, page int) ([]entity.Server, error)
 }
 
 type ServerServiceContract interface {
 	Create(ctx context.Context, data ServerData) (*ServerResponse, error)
 	FetchById(ctx context.Context, id int) (*ServerResponse, error)
 	DeleteById(ctx context.Context, id int) error
+	GetList(ctx context.Context, limit, page int) ([]ServerResponse, error)
 }
 
 type ServerData struct {
@@ -91,6 +94,23 @@ func (s *ServerService) DeleteById(ctx context.Context, id int) error {
 	}
 
 	return nil
+}
+
+func (s *ServerService) GetList(ctx context.Context, limit, page int) ([]ServerResponse, error) {
+	servers, err := s.storage.GetList(ctx, limit, page)
+
+	if err != nil {
+		slog.Error(err.Error())
+		return []ServerResponse{}, fmt.Errorf("error during reading data from storage: %w", err)
+	}
+
+	responses := make([]ServerResponse, len(servers))
+
+	for i, server := range servers {
+		responses[i] = *createServerResponseFromServerEntity(server)
+	}
+
+	return responses, nil
 }
 
 func createServerResponseFromServerEntity(s entity.Server) *ServerResponse {

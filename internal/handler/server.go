@@ -87,3 +87,26 @@ func (s *ServerHandlers) Delete(w http.ResponseWriter, r *http.Request) {
 
 	writeWithEmptyBody(w)
 }
+
+func (s *ServerHandlers) GetList(w http.ResponseWriter, r *http.Request) {
+	page, err := strconv.Atoi(r.URL.Query().Get("page"))
+
+	if err != nil {
+		page = 1
+	}
+
+	limit, err := strconv.Atoi(r.URL.Query().Get("limit"))
+
+	if err != nil {
+		limit = 10
+	}
+
+	response, err := s.serverService.GetList(r.Context(), limit, page)
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writeOkJson(w, response)
+}

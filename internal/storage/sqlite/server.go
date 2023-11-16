@@ -142,3 +142,56 @@ func (s *ServerStorage) DeleteById(ctx context.Context, id int) error {
 
 	return nil
 }
+
+func (s *ServerStorage) GetList(ctx context.Context, limit, page int) ([]entity.Server, error) {
+	var servers []entity.Server
+
+	if limit < 0 || page < 0 {
+		return servers, fmt.Errorf("invalid input parameters")
+	}
+
+	db, err := sql.Open(driverName, s.connStr)
+
+	if err != nil {
+		return servers, fmt.Errorf("can not open sqlite connection: %w", err)
+	}
+
+	defer db.Close()
+
+	stmt, err := db.PrepareContext(
+		ctx,
+		"SELECT id, name, host, log_location_path, log_location_format, created_at, updated_at FROM servers ORDER BY id DESC LIMIT ? OFFSET ?;",
+	)
+
+	if err != nil {
+		return servers, fmt.Errorf("error during preparing query: %w", err)
+	}
+
+	defer stmt.Close()
+
+	rows, err := stmt.QueryContext(ctx, limit, (page-1)*limit)
+
+	if err != nil {
+		return servers, fmt.Errorf("query execution failed: %w", err)
+	}
+
+	defer rows.Close()
+
+	var server entity.Server
+
+	for rows.Next() {
+		rows.Scan(
+			&server.Id,
+			&server.Name,
+			&server.Host,
+			&server.LogLocation.Path,
+			&server.LogLocation.Format,
+			&server.CreatedAt,
+			&server.UpdatedAt,
+		)
+
+		servers = append(servers, server)
+	}
+
+	return servers, nil
+}
