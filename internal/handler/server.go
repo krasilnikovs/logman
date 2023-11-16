@@ -48,10 +48,7 @@ func (l *ServerHandlers) FetchById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(response)
+	writeOkJson(w, response)
 }
 
 func (l *ServerHandlers) Create(w http.ResponseWriter, r *http.Request) {
@@ -72,8 +69,5 @@ func (l *ServerHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	w.Header().Add("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-
-	json.NewEncoder(w).Encode(response)
+	writeOkJson(w, response)
 }
