@@ -11,11 +11,13 @@ import (
 type ServerStorager interface {
 	Create(ctx context.Context, server *entity.Server) error
 	GetById(ctx context.Context, id int) (*entity.Server, error)
+	DeleteById(ctx context.Context, id int) error
 }
 
 type ServerServiceContract interface {
 	Create(ctx context.Context, data ServerData) (*ServerResponse, error)
 	FetchById(ctx context.Context, id int) (*ServerResponse, error)
+	DeleteById(ctx context.Context, id int) error
 }
 
 type ServerData struct {
@@ -81,6 +83,14 @@ func (l *ServerService) Create(ctx context.Context, data ServerData) (*ServerRes
 	}
 
 	return createServerResponseFromServerEntity(*server), nil
+}
+
+func (s *ServerService) DeleteById(ctx context.Context, id int) error {
+	if err := s.storage.DeleteById(ctx, id); err != nil {
+		return fmt.Errorf("delete by id failed: %w", err)
+	}
+
+	return nil
 }
 
 func createServerResponseFromServerEntity(s entity.Server) *ServerResponse {

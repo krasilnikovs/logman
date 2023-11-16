@@ -66,6 +66,7 @@ func registerRoutes(r *chi.Mux, cfg application.ApiServerConfiguration) {
 
 	r.Get("/api/v1/servers/{id:\\d+}", serverHandlers.FetchById)
 	r.Post("/api/v1/servers", serverHandlers.Create)
+	r.Delete("/api/v1/servers/{id:\\d+}", serverHandlers.Delete)
 }
 
 // runMigrations method up the migrations

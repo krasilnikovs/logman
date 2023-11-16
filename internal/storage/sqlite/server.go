@@ -33,7 +33,7 @@ func (s *ServerStorage) Create(ctx context.Context, server *entity.Server) error
 
 	stmt, err := db.PrepareContext(
 		ctx,
-		`INSERT INTO servers (name, host, log_location_path, log_location_format, created_at, updated_at) VALUES(?,?,?,?,?,?)`,
+		"INSERT INTO servers (name, host, log_location_path, log_location_format, created_at, updated_at) VALUES(?,?,?,?,?,?)",
 	)
 
 	if err != nil {
@@ -69,8 +69,8 @@ func (s *ServerStorage) Create(ctx context.Context, server *entity.Server) error
 
 // A GetById method return Server if no errors
 // In case when Server is not found the method will return nil
-func (l *ServerStorage) GetById(ctx context.Context, id int) (*entity.Server, error) {
-	db, err := sql.Open(driverName, l.connStr)
+func (s *ServerStorage) GetById(ctx context.Context, id int) (*entity.Server, error) {
+	db, err := sql.Open(driverName, s.connStr)
 
 	if err != nil {
 		return nil, fmt.Errorf("can not open sqlite connection: %w", err)
@@ -114,4 +114,31 @@ func (l *ServerStorage) GetById(ctx context.Context, id int) (*entity.Server, er
 	)
 
 	return &server, nil
+}
+
+func (s *ServerStorage) DeleteById(ctx context.Context, id int) error {
+	db, err := sql.Open(driverName, s.connStr)
+
+	if err != nil {
+		return fmt.Errorf("can not open sqlite connection: %w", err)
+	}
+
+	defer db.Close()
+
+	stmt, err := db.PrepareContext(
+		ctx,
+		"DELETE FROM servers WHERE id = ?;",
+	)
+
+	if err != nil {
+		return fmt.Errorf("error during preparing query: %w", err)
+	}
+
+	defer stmt.Close()
+
+	if _, err := stmt.ExecContext(ctx, id); err != nil {
+		return fmt.Errorf("query execution failed: %w", err)
+	}
+
+	return nil
 }

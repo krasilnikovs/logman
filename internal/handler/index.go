@@ -24,3 +24,8 @@ func writeOkJson(w http.ResponseWriter, data any) {
 
 	json.NewEncoder(w).Encode(data)
 }
+
+func writeWithEmptyBody(w http.ResponseWriter) {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
+}

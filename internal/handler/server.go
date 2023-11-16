@@ -18,16 +18,16 @@ type CreateServerRequest struct {
 }
 
 type ServerHandlers struct {
-	s service.ServerServiceContract
+	serverService service.ServerServiceContract
 }
 
 func NewServerHandlers(s service.ServerServiceContract) *ServerHandlers {
 	return &ServerHandlers{
-		s: s,
+		serverService: s,
 	}
 }
 
-func (l *ServerHandlers) FetchById(w http.ResponseWriter, r *http.Request) {
+func (s *ServerHandlers) FetchById(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(chi.URLParam(r, "id"))
 
 	if err != nil {
@@ -35,7 +35,7 @@ func (l *ServerHandlers) FetchById(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := l.s.FetchById(r.Context(), id)
+	response, err := s.serverService.FetchById(r.Context(), id)
 
 	if err != nil {
 		slog.Error("Unexpected error", slog.String("error", err.Error()))
@@ -51,7 +51,7 @@ func (l *ServerHandlers) FetchById(w http.ResponseWriter, r *http.Request) {
 	writeOkJson(w, response)
 }
 
-func (l *ServerHandlers) Create(w http.ResponseWriter, r *http.Request) {
+func (s *ServerHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	var requestBody service.ServerData
 
 	err := json.NewDecoder(r.Body).Decode(&requestBody)
@@ -61,7 +61,7 @@ func (l *ServerHandlers) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response, err := l.s.Create(r.Context(), requestBody)
+	response, err := s.serverService.Create(r.Context(), requestBody)
 
 	if err != nil {
 		slog.Error(err.Error())
@@ -70,4 +70,20 @@ func (l *ServerHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	writeOkJson(w, response)
+}
+
+func (s *ServerHandlers) Delete(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.Atoi(chi.URLParam(r, "id"))
+
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	if err := s.serverService.DeleteById(r.Context(), id); err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	writeWithEmptyBody(w)
 }
