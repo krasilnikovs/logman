@@ -1,4 +1,3 @@
-// Package handler contains api handlers
 package handler
 
 import (
@@ -16,8 +15,17 @@ func Index(w http.ResponseWriter, r *http.Request) {
 		Application: "logman",
 	}
 
+	writeOkJson(w, data)
+}
+
+func writeOkJson(w http.ResponseWriter, data any) {
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(data)
+}
+
+func writeWithEmptyBody(w http.ResponseWriter) {
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusNoContent)
 }
