@@ -1,7 +1,9 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -9,6 +11,14 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/krasilnikovm/logman/internal/service"
 )
+
+type ServerServiceContract interface {
+	Create(ctx context.Context, data service.ServerData) (*service.ServerResponse, error)
+	FetchById(ctx context.Context, id int) (*service.ServerResponse, error)
+	DeleteById(ctx context.Context, id int) error
+	GetList(ctx context.Context, limit, page int) ([]service.ServerResponse, error)
+	Update(ctx context.Context, id int, data service.ServerData) (*service.ServerResponse, error)
+}
 
 type CreateServerRequest struct {
 	Name              string `json:"name"`
@@ -18,10 +28,10 @@ type CreateServerRequest struct {
 }
 
 type ServerHandlers struct {
-	serverService service.ServerServiceContract
+	serverService ServerServiceContract
 }
 
-func NewServerHandlers(s service.ServerServiceContract) *ServerHandlers {
+func NewServerHandlers(s ServerServiceContract) *ServerHandlers {
 	return &ServerHandlers{
 		serverService: s,
 	}
@@ -62,6 +72,11 @@ func (s *ServerHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := s.serverService.Create(r.Context(), requestBody)
+
+	if errors.As(err, &service.ErrValidation{}) {
+		writeValidationJson(w, err.(service.ErrValidation))
+		return
+	}
 
 	if err != nil {
 		slog.Error(err.Error())
@@ -129,6 +144,11 @@ func (s *ServerHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := s.serverService.Update(r.Context(), id, requestBody)
+
+	if errors.Is(err, service.ErrValidation{}) {
+		writeValidationJson(w, err.(service.ErrValidation))
+		return
+	}
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

@@ -3,6 +3,8 @@ package handler
 import (
 	"encoding/json"
 	"net/http"
+
+	"github.com/krasilnikovm/logman/internal/service"
 )
 
 // Index is a HandlerFunc which returns application info
@@ -23,6 +25,17 @@ func writeOkJson(w http.ResponseWriter, data any) {
 	w.WriteHeader(http.StatusOK)
 
 	json.NewEncoder(w).Encode(data)
+}
+
+func writeValidationJson(w http.ResponseWriter, err service.ErrValidation) {
+	type validationResponse struct {
+		Errors []string `json:"errors"`
+	}
+
+	w.Header().Add("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnprocessableEntity)
+
+	json.NewEncoder(w).Encode(validationResponse{Errors: err.Errors})
 }
 
 func writeWithEmptyBody(w http.ResponseWriter) {

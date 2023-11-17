@@ -4,10 +4,20 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"strings"
 	"time"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/krasilnikovm/logman/internal/entity"
 )
+
+type ErrValidation struct {
+	Errors []string `json:"errors"`
+}
+
+func (e ErrValidation) Error() string {
+	return strings.Join(e.Errors, ", ")
+}
 
 type ServerStorager interface {
 	Create(ctx context.Context, server *entity.Server) error
@@ -17,12 +27,8 @@ type ServerStorager interface {
 	Update(ctx context.Context, server *entity.Server, id int) error
 }
 
-type ServerServiceContract interface {
-	Create(ctx context.Context, data ServerData) (*ServerResponse, error)
-	FetchById(ctx context.Context, id int) (*ServerResponse, error)
-	DeleteById(ctx context.Context, id int) error
-	GetList(ctx context.Context, limit, page int) ([]ServerResponse, error)
-	Update(ctx context.Context, id int, data ServerData) (*ServerResponse, error)
+type Validator interface {
+	Struct(s interface{}) error
 }
 
 type ServerData struct {
@@ -47,11 +53,13 @@ type LogLocationModel struct {
 
 type ServerService struct {
 	storage ServerStorager
+	v       Validator
 }
 
-func NewServerService(storage ServerStorager) *ServerService {
+func NewServerService(storage ServerStorager, v Validator) *ServerService {
 	return &ServerService{
 		storage: storage,
+		v:       v,
 	}
 }
 
@@ -69,7 +77,7 @@ func (l *ServerService) FetchById(ctx context.Context, id int) (*ServerResponse,
 	return createServerResponseFromServerEntity(*server), nil
 }
 
-func (l *ServerService) Create(ctx context.Context, data ServerData) (*ServerResponse, error) {
+func (s *ServerService) Create(ctx context.Context, data ServerData) (*ServerResponse, error) {
 	now := time.Now()
 
 	server := &entity.Server{
@@ -83,7 +91,11 @@ func (l *ServerService) Create(ctx context.Context, data ServerData) (*ServerRes
 		UpdatedAt: now.Format(time.RFC3339),
 	}
 
-	if err := l.storage.Create(ctx, server); err != nil {
+	if err := s.v.Struct(server); err != nil {
+		return nil, buildValidationError(err)
+	}
+
+	if err := s.storage.Create(ctx, server); err != nil {
 		return nil, fmt.Errorf("error during creating server: %w", err)
 	}
 
@@ -136,6 +148,10 @@ func (s *ServerService) Update(ctx context.Context, id int, data ServerData) (*S
 	}
 	server.UpdatedAt = now.Format(time.RFC3339)
 
+	if err := s.v.Struct(server); err != nil {
+		return nil, buildValidationError(err)
+	}
+
 	if err := s.storage.Update(ctx, server, id); err != nil {
 		return nil, fmt.Errorf("error during updating server: %w", err)
 	}
@@ -155,4 +171,14 @@ func createServerResponseFromServerEntity(s entity.Server) *ServerResponse {
 		CreatedAt: s.CreatedAt,
 		UpdatedAt: s.UpdatedAt,
 	}
+}
+
+func buildValidationError(err error) ErrValidation {
+	var errs []string
+
+	for _, e := range err.(validator.ValidationErrors) {
+		errs = append(errs, fmt.Sprintf(`Invalid '%s' field, please check the '%s' is an %s`, e.Field(), e.Field(), e.Tag()))
+	}
+
+	return ErrValidation{Errors: errs}
 }

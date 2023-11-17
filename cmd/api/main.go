@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-playground/validator/v10"
 	"github.com/ilyakaznacheev/cleanenv"
 
 	"github.com/krasilnikovm/logman/internal/application"
@@ -22,9 +23,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const (
-	driverName = "sqlite3"
-)
+var validate = validator.New()
 
 // main is an entrypoint of launching api server
 func main() {
@@ -51,6 +50,7 @@ func main() {
 	if err := s.Run(); err != nil {
 		logger.Error("Server is not launched")
 	}
+
 }
 
 // registerRoutes method initialized routes
@@ -59,6 +59,7 @@ func registerRoutes(r *chi.Mux, cfg application.ApiServerConfiguration) {
 	serverHandlers := handler.NewServerHandlers(
 		service.NewServerService(
 			storage.NewServerStorage(cfg.DataStoragePath),
+			validate,
 		),
 	)
 
@@ -74,7 +75,7 @@ func registerRoutes(r *chi.Mux, cfg application.ApiServerConfiguration) {
 // runMigrations method up the migrations
 func runMigrations(cfg application.ApiServerConfiguration) error {
 
-	db, err := sql.Open(driverName, cfg.DataStoragePath)
+	db, err := sql.Open(storage.DriverName, cfg.DataStoragePath)
 
 	if err != nil {
 		return fmt.Errorf("can not open connection: %w", err)
@@ -92,7 +93,7 @@ func runMigrations(cfg application.ApiServerConfiguration) error {
 
 	mgr, err := migrate.NewWithDatabaseInstance(
 		"file://migrations",
-		driverName,
+		storage.DriverName,
 		driver,
 	)
 
