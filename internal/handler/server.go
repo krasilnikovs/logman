@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -62,6 +63,11 @@ func (s *ServerHandlers) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := s.serverService.Create(r.Context(), requestBody)
+
+	if errors.As(err, &service.ErrValidation{}) {
+		writeValidationJson(w, err.(service.ErrValidation))
+		return
+	}
 
 	if err != nil {
 		slog.Error(err.Error())
@@ -129,6 +135,11 @@ func (s *ServerHandlers) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response, err := s.serverService.Update(r.Context(), id, requestBody)
+
+	if errors.Is(err, service.ErrValidation{}) {
+		writeValidationJson(w, err.(service.ErrValidation))
+		return
+	}
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

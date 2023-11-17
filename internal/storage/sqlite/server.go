@@ -9,7 +9,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const driverName = "sqlite3"
+const DriverName = "sqlite3"
 
 // A ServerStorage contains methods for communication with Server entity
 type ServerStorage struct {
@@ -22,8 +22,9 @@ func NewServerStorage(connStr string) *ServerStorage {
 	}
 }
 
+// A Create method creates new Server in database
 func (s *ServerStorage) Create(ctx context.Context, server *entity.Server) error {
-	db, err := sql.Open(driverName, s.connStr)
+	db, err := sql.Open(DriverName, s.connStr)
 
 	if err != nil {
 		return fmt.Errorf("can not open sqlite connection: %w", err)
@@ -70,7 +71,7 @@ func (s *ServerStorage) Create(ctx context.Context, server *entity.Server) error
 // A GetById method return Server if no errors
 // In case when Server is not found the method will return nil
 func (s *ServerStorage) GetById(ctx context.Context, id int) (*entity.Server, error) {
-	db, err := sql.Open(driverName, s.connStr)
+	db, err := sql.Open(DriverName, s.connStr)
 
 	if err != nil {
 		return nil, fmt.Errorf("can not open sqlite connection: %w", err)
@@ -116,8 +117,9 @@ func (s *ServerStorage) GetById(ctx context.Context, id int) (*entity.Server, er
 	return &server, nil
 }
 
+// A DeleteById method deletes Server by id
 func (s *ServerStorage) DeleteById(ctx context.Context, id int) error {
-	db, err := sql.Open(driverName, s.connStr)
+	db, err := sql.Open(DriverName, s.connStr)
 
 	if err != nil {
 		return fmt.Errorf("can not open sqlite connection: %w", err)
@@ -143,6 +145,7 @@ func (s *ServerStorage) DeleteById(ctx context.Context, id int) error {
 	return nil
 }
 
+// A GetList method returns list of Servers
 func (s *ServerStorage) GetList(ctx context.Context, limit, page int) ([]entity.Server, error) {
 	var servers []entity.Server
 
@@ -150,7 +153,7 @@ func (s *ServerStorage) GetList(ctx context.Context, limit, page int) ([]entity.
 		return servers, fmt.Errorf("invalid input parameters")
 	}
 
-	db, err := sql.Open(driverName, s.connStr)
+	db, err := sql.Open(DriverName, s.connStr)
 
 	if err != nil {
 		return servers, fmt.Errorf("can not open sqlite connection: %w", err)
@@ -196,8 +199,9 @@ func (s *ServerStorage) GetList(ctx context.Context, limit, page int) ([]entity.
 	return servers, nil
 }
 
+// A Update method updates Server by id
 func (s *ServerStorage) Update(ctx context.Context, server *entity.Server, id int) error {
-	db, err := sql.Open(driverName, s.connStr)
+	db, err := sql.Open(DriverName, s.connStr)
 
 	if err != nil {
 		return fmt.Errorf("can not open sqlite connection: %w", err)
