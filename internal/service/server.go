@@ -27,14 +27,6 @@ type ServerStorager interface {
 	Update(ctx context.Context, server *entity.Server, id int) error
 }
 
-type ServerServiceContract interface {
-	Create(ctx context.Context, data ServerData) (*ServerResponse, error)
-	FetchById(ctx context.Context, id int) (*ServerResponse, error)
-	DeleteById(ctx context.Context, id int) error
-	GetList(ctx context.Context, limit, page int) ([]ServerResponse, error)
-	Update(ctx context.Context, id int, data ServerData) (*ServerResponse, error)
-}
-
 type Validator interface {
 	Struct(s interface{}) error
 }

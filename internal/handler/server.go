@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"log/slog"
@@ -11,6 +12,14 @@ import (
 	"github.com/krasilnikovm/logman/internal/service"
 )
 
+type ServerServiceContract interface {
+	Create(ctx context.Context, data service.ServerData) (*service.ServerResponse, error)
+	FetchById(ctx context.Context, id int) (*service.ServerResponse, error)
+	DeleteById(ctx context.Context, id int) error
+	GetList(ctx context.Context, limit, page int) ([]service.ServerResponse, error)
+	Update(ctx context.Context, id int, data service.ServerData) (*service.ServerResponse, error)
+}
+
 type CreateServerRequest struct {
 	Name              string `json:"name"`
 	Host              string `json:"host"`
@@ -19,10 +28,10 @@ type CreateServerRequest struct {
 }
 
 type ServerHandlers struct {
-	serverService service.ServerServiceContract
+	serverService ServerServiceContract
 }
 
-func NewServerHandlers(s service.ServerServiceContract) *ServerHandlers {
+func NewServerHandlers(s ServerServiceContract) *ServerHandlers {
 	return &ServerHandlers{
 		serverService: s,
 	}
