@@ -32,18 +32,21 @@ type Validator interface {
 }
 
 type ServerData struct {
-	Name        string           `json:"name"`
-	Host        string           `json:"host"`
-	LogLocation LogLocationModel `json:"logLocation"`
+	Name         string           `json:"name"`
+	Host         string           `json:"host"`
+	CredentialId int              `json:"credentialId"`
+	LogLocation  LogLocationModel `json:"logLocation"`
 }
 
 type ServerResponse struct {
-	Id          int              `json:"id"`
-	Name        string           `json:"name"`
-	Host        string           `json:"host"`
-	LogLocation LogLocationModel `json:"logLocation"`
-	CreatedAt   string           `json:"createdAt"`
-	UpdatedAt   string           `json:"updatedAt"`
+	Id            int    `json:"id"`
+	Name          string `json:"name"`
+	Host          string `json:"host"`
+	LogFolderPath string `json:"log_folder_path"`
+	LogFormat     string `json:"log_format"`
+	CredentialId  int    `json:"credentialId"`
+	CreatedAt     string `json:"createdAt"`
+	UpdatedAt     string `json:"updatedAt"`
 }
 
 type LogLocationModel struct {
@@ -52,14 +55,17 @@ type LogLocationModel struct {
 }
 
 type ServerService struct {
-	storage ServerStorager
-	v       Validator
+	storage           ServerStorager
+	credentialStorage CredentialStorager
+	l                 Logger
+	v                 Validator
 }
 
-func NewServerService(storage ServerStorager, v Validator) *ServerService {
+func NewServerService(storage ServerStorager, credentialStorage CredentialStorager, l Logger, v Validator) *ServerService {
 	return &ServerService{
-		storage: storage,
-		v:       v,
+		storage:           storage,
+		credentialStorage: credentialStorage,
+		v:                 v,
 	}
 }
 
@@ -78,17 +84,27 @@ func (l *ServerService) FetchById(ctx context.Context, id int) (*ServerResponse,
 }
 
 func (s *ServerService) Create(ctx context.Context, data ServerData) (*ServerResponse, error) {
+
+	credential, err := s.credentialStorage.GetById(ctx, data.CredentialId)
+
+	if err != nil {
+		return nil, fmt.Errorf("error during Credential search by id: %w", err)
+	}
+
+	if credential == nil {
+		return nil, ErrValidation{Errors: []string{fmt.Sprintf("credential with id %d not found", data.CredentialId)}}
+	}
+
 	now := time.Now()
 
 	server := &entity.Server{
-		Name: data.Name,
-		Host: data.Host,
-		LogLocation: entity.LogLocation{
-			Path:   data.LogLocation.Path,
-			Format: data.LogLocation.Format,
-		},
-		CreatedAt: now.Format(time.RFC3339),
-		UpdatedAt: now.Format(time.RFC3339),
+		Name:       data.Name,
+		Host:       data.Host,
+		Credential: *credential,
+		LogPath:    entity.LogFolderPath(data.LogLocation.Path),
+		LogFormat:  entity.LogFormat(data.LogLocation.Format),
+		CreatedAt:  now.Format(time.RFC3339),
+		UpdatedAt:  now.Format(time.RFC3339),
 	}
 
 	if err := s.v.Struct(server); err != nil {
@@ -142,10 +158,8 @@ func (s *ServerService) Update(ctx context.Context, id int, data ServerData) (*S
 
 	server.Name = data.Name
 	server.Host = data.Host
-	server.LogLocation = entity.LogLocation{
-		Path:   data.LogLocation.Path,
-		Format: data.LogLocation.Format,
-	}
+	server.LogPath = entity.LogFolderPath(data.LogLocation.Path)
+	server.LogFormat = entity.LogFormat(data.LogLocation.Format)
 	server.UpdatedAt = now.Format(time.RFC3339)
 
 	if err := s.v.Struct(server); err != nil {
@@ -161,15 +175,14 @@ func (s *ServerService) Update(ctx context.Context, id int, data ServerData) (*S
 
 func createServerResponseFromServerEntity(s entity.Server) *ServerResponse {
 	return &ServerResponse{
-		Id:   s.Id,
-		Name: s.Name,
-		Host: s.Host,
-		LogLocation: LogLocationModel{
-			Path:   s.LogLocation.Path,
-			Format: s.LogLocation.Format,
-		},
-		CreatedAt: s.CreatedAt,
-		UpdatedAt: s.UpdatedAt,
+		Id:            s.Id,
+		Name:          s.Name,
+		Host:          s.Host,
+		CredentialId:  s.Credential.Id,
+		LogFolderPath: string(s.LogPath),
+		LogFormat:     string(s.LogFormat),
+		CreatedAt:     s.CreatedAt,
+		UpdatedAt:     s.UpdatedAt,
 	}
 }
 
@@ -177,7 +190,7 @@ func buildValidationError(err error) ErrValidation {
 	var errs []string
 
 	for _, e := range err.(validator.ValidationErrors) {
-		errs = append(errs, fmt.Sprintf(`Invalid '%s' field, please check the '%s' is an %s`, e.Field(), e.Field(), e.Tag()))
+		errs = append(errs, fmt.Sprintf(`invalid '%s' field, please check the '%s' is an %s`, e.Field(), e.Field(), e.Tag()))
 	}
 
 	return ErrValidation{Errors: errs}

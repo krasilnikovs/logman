@@ -5,16 +5,16 @@ const (
 	LogLocationFormatJson = "json"
 )
 
-type LogLocation struct {
-	Path   string `validate:"required"`
-	Format string `validate:"required,eq=json"`
-}
+type LogFolderPath string
+type LogFormat string
 
 type Server struct {
-	Id          int
-	Name        string      `validate:"required"`
-	Host        string      `validate:"required,hostname|ip"`
-	LogLocation LogLocation `validate:"required"`
-	CreatedAt   string      `validate:"required"`
-	UpdatedAt   string      `validate:"required"`
+	Id         int
+	Name       string        `validate:"required"`
+	Host       string        `validate:"required,hostname|ip"`
+	LogPath    LogFolderPath `validate:"required"`
+	LogFormat  LogFormat     `validate:"required,eq=json"`
+	Credential Credential    `validate:"required"`
+	CreatedAt  string        `validate:"required"`
+	UpdatedAt  string        `validate:"required"`
 }

@@ -20,13 +20,6 @@ type ServerServiceContract interface {
 	Update(ctx context.Context, id int, data service.ServerData) (*service.ServerResponse, error)
 }
 
-type CreateServerRequest struct {
-	Name              string `json:"name"`
-	Host              string `json:"host"`
-	LogLocationPath   string `json:"logLocationPath"`
-	LogLocationFormat string `json:"logLocationFormat"`
-}
-
 type ServerHandlers struct {
 	serverService ServerServiceContract
 }

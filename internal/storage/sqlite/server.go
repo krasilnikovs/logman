@@ -47,8 +47,8 @@ func (s *ServerStorage) Create(ctx context.Context, server *entity.Server) error
 		ctx,
 		server.Name,
 		server.Host,
-		server.LogLocation.Path,
-		server.LogLocation.Format,
+		server.LogPath,
+		server.LogFormat,
 		server.CreatedAt,
 		server.UpdatedAt,
 	)
@@ -108,8 +108,8 @@ func (s *ServerStorage) GetById(ctx context.Context, id int) (*entity.Server, er
 		&server.Id,
 		&server.Name,
 		&server.Host,
-		&server.LogLocation.Path,
-		&server.LogLocation.Format,
+		&server.LogPath,
+		&server.LogFormat,
 		&server.CreatedAt,
 		&server.UpdatedAt,
 	)
@@ -187,8 +187,8 @@ func (s *ServerStorage) GetList(ctx context.Context, limit, page int) ([]entity.
 			&server.Id,
 			&server.Name,
 			&server.Host,
-			&server.LogLocation.Path,
-			&server.LogLocation.Format,
+			&server.LogPath,
+			&server.LogFormat,
 			&server.CreatedAt,
 			&server.UpdatedAt,
 		)
@@ -224,8 +224,8 @@ func (s *ServerStorage) Update(ctx context.Context, server *entity.Server, id in
 		ctx,
 		server.Name,
 		server.Host,
-		server.LogLocation.Path,
-		server.LogLocation.Format,
+		server.LogPath,
+		server.LogFormat,
 		server.UpdatedAt,
 		id,
 	)
