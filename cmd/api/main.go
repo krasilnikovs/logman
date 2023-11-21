@@ -39,7 +39,7 @@ func main() {
 		logger.Error("can not read envs", slog.String("error", err.Error()))
 	}
 
-	registerRoutes(r, configuration)
+	registerRoutes(r, configuration, logger)
 
 	if err := runMigrations(configuration); err != nil {
 		logger.Error("migrations is not executed", slog.String("error", err.Error()))
@@ -54,11 +54,20 @@ func main() {
 }
 
 // registerRoutes method initialized routes
-func registerRoutes(r *chi.Mux, cfg application.ApiServerConfiguration) {
+func registerRoutes(r *chi.Mux, cfg application.ApiServerConfiguration, logger *slog.Logger) {
 
 	serverHandlers := handler.NewServerHandlers(
 		service.NewServerService(
 			storage.NewServerStorage(cfg.DataStoragePath),
+			storage.NewCredentialStorage(cfg.DataStoragePath),
+			logger,
+			validate,
+		),
+	)
+
+	credentialHandlers := handler.NewCredentialHandlers(
+		service.NewCredentialService(
+			storage.NewCredentialStorage(cfg.DataStoragePath),
 			validate,
 		),
 	)
@@ -70,6 +79,12 @@ func registerRoutes(r *chi.Mux, cfg application.ApiServerConfiguration) {
 	r.Post("/api/v1/servers", serverHandlers.Create)
 	r.Delete("/api/v1/servers/{id:\\d+}", serverHandlers.Delete)
 	r.Patch("/api/v1/servers/{id:\\d+}", serverHandlers.Update)
+
+	r.Get("/api/v1/credentials/{id:\\d+}", credentialHandlers.FetchById)
+	r.Get("/api/v1/credentials", credentialHandlers.GetList)
+	r.Post("/api/v1/credentials", credentialHandlers.Create)
+	r.Delete("/api/v1/credentials/{id:\\d+}", credentialHandlers.Delete)
+	r.Patch("/api/v1/credentials/{id:\\d+}", credentialHandlers.Update)
 }
 
 // runMigrations method up the migrations

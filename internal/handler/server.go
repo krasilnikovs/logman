@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -18,13 +19,6 @@ type ServerServiceContract interface {
 	DeleteById(ctx context.Context, id int) error
 	GetList(ctx context.Context, limit, page int) ([]service.ServerResponse, error)
 	Update(ctx context.Context, id int, data service.ServerData) (*service.ServerResponse, error)
-}
-
-type CreateServerRequest struct {
-	Name              string `json:"name"`
-	Host              string `json:"host"`
-	LogLocationPath   string `json:"logLocationPath"`
-	LogLocationFormat string `json:"logLocationFormat"`
 }
 
 type ServerHandlers struct {
@@ -145,12 +139,13 @@ func (s *ServerHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	response, err := s.serverService.Update(r.Context(), id, requestBody)
 
-	if errors.Is(err, service.ErrValidation{}) {
+	if errors.As(err, &service.ErrValidation{}) {
 		writeValidationJson(w, err.(service.ErrValidation))
 		return
 	}
 
 	if err != nil {
+		fmt.Println(err)
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}

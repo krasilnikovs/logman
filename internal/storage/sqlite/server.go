@@ -34,7 +34,7 @@ func (s *ServerStorage) Create(ctx context.Context, server *entity.Server) error
 
 	stmt, err := db.PrepareContext(
 		ctx,
-		"INSERT INTO servers (name, host, log_location_path, log_location_format, created_at, updated_at) VALUES(?,?,?,?,?,?)",
+		"INSERT INTO servers (name, host, log_location_path, log_location_format, credential_id, created_at, updated_at) VALUES(?,?,?,?,?,?,?)",
 	)
 
 	if err != nil {
@@ -47,8 +47,9 @@ func (s *ServerStorage) Create(ctx context.Context, server *entity.Server) error
 		ctx,
 		server.Name,
 		server.Host,
-		server.LogLocation.Path,
-		server.LogLocation.Format,
+		server.LogFolderPath,
+		server.LogFormat,
+		server.CredentialId,
 		server.CreatedAt,
 		server.UpdatedAt,
 	)
@@ -81,7 +82,7 @@ func (s *ServerStorage) GetById(ctx context.Context, id int) (*entity.Server, er
 
 	stmt, err := db.PrepareContext(
 		ctx,
-		"SELECT id, name, host, log_location_path, log_location_format, created_at, updated_at FROM servers WHERE id = ?;",
+		"SELECT id, name, host, log_location_path, log_location_format, credential_id, created_at, updated_at FROM servers WHERE id = ?;",
 	)
 
 	if err != nil {
@@ -108,8 +109,9 @@ func (s *ServerStorage) GetById(ctx context.Context, id int) (*entity.Server, er
 		&server.Id,
 		&server.Name,
 		&server.Host,
-		&server.LogLocation.Path,
-		&server.LogLocation.Format,
+		&server.LogFolderPath,
+		&server.LogFormat,
+		&server.CredentialId,
 		&server.CreatedAt,
 		&server.UpdatedAt,
 	)
@@ -163,7 +165,7 @@ func (s *ServerStorage) GetList(ctx context.Context, limit, page int) ([]entity.
 
 	stmt, err := db.PrepareContext(
 		ctx,
-		"SELECT id, name, host, log_location_path, log_location_format, created_at, updated_at FROM servers ORDER BY id DESC LIMIT ? OFFSET ?;",
+		"SELECT id, name, host, log_location_path, log_location_format, credential_id, created_at, updated_at FROM servers ORDER BY id DESC LIMIT ? OFFSET ?;",
 	)
 
 	if err != nil {
@@ -187,8 +189,9 @@ func (s *ServerStorage) GetList(ctx context.Context, limit, page int) ([]entity.
 			&server.Id,
 			&server.Name,
 			&server.Host,
-			&server.LogLocation.Path,
-			&server.LogLocation.Format,
+			&server.LogFolderPath,
+			&server.LogFormat,
+			&server.CredentialId,
 			&server.CreatedAt,
 			&server.UpdatedAt,
 		)
@@ -211,7 +214,7 @@ func (s *ServerStorage) Update(ctx context.Context, server *entity.Server, id in
 
 	stmt, err := db.PrepareContext(
 		ctx,
-		"UPDATE servers SET name = ?, host = ?, log_location_path = ?, log_location_format = ?, updated_at = ? WHERE id = ?;",
+		"UPDATE servers SET name = ?, host = ?, log_location_path = ?, log_location_format = ?, credential_id = ?, updated_at = ? WHERE id = ?;",
 	)
 
 	if err != nil {
@@ -224,8 +227,9 @@ func (s *ServerStorage) Update(ctx context.Context, server *entity.Server, id in
 		ctx,
 		server.Name,
 		server.Host,
-		server.LogLocation.Path,
-		server.LogLocation.Format,
+		server.LogFolderPath,
+		server.LogFormat,
+		server.CredentialId,
 		server.UpdatedAt,
 		id,
 	)
