@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logman</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
+</head>
+
+<body class="font-sans bg-gray-100">
+
+    <!-- Sidebar -->
+    <div class="flex h-screen bg-gray-200">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-gray-700">
+            <!-- Your sidebar content goes here -->
+            <div class="py-4 px-6">
+                <h2 class="text-white text-lg font-semibold">Admin Panel</h2>
+            </div>
+            <nav>
+                <a href="#" class="block py-2 px-4 text-gray-300 hover:bg-gray-600">Dashboard</a>
+                <a href="#" class="block py-2 px-4 text-gray-300 hover:bg-gray-600">Servers</a>
+                <a href="#" class="block py-2 px-4 text-gray-300 hover:bg-gray-600">Credentials</a>
+                <!-- Add more sidebar links as needed -->
+            </nav>
+        </aside>
+
+        <!-- Content -->
+        <div class="flex-1 flex flex-col overflow-hidden">
+            <!-- Top Bar -->
+            <header class="bg-gray-800">
+                <!-- Your top bar content goes here -->
+                <div class="flex items-center justify-between py-4 px-6">
+                    <div class="flex items-center">
+                        <!-- Add any top bar elements like logo or user profile here -->
+                        <span class="text-white text-lg font-semibold">Welcome, Admin!</span>
+                    </div>
+                    <!-- Add any additional top bar actions or navigation here -->
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="flex-1 overflow-x-hidden overflow-y-auto bg-gray-100">
+                <!-- Your main content goes here -->
+                <div class="container mx-auto my-8 p-8 bg-white rounded shadow">
+                    <h1 class="text-2xl font-semibold mb-6">Dashboard</h1>
+                    <!-- Add your dashboard content here -->
+                </div>
+            </main>
+        </div>
+    </div>
+
+</body>
+
+</html>

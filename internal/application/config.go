@@ -17,5 +17,11 @@ type ApiServerConfiguration struct {
 
 	// Port shows on which ports works api server, the value reads from "LOGMAN_PORT" environment variable
 	// if the environment variable is not set then will be use "8016" port
-	Port string `env:"LOGMAN_PORT" env-default:"8016"`
+	Port string `env:"LOGMAN_API_PORT" env-default:"8016"`
+}
+
+type UiServerConfiguration struct {
+	Configuration
+
+	Port string `env:"LOGMAN_UI_PORT" env-default:"8017"`
 }

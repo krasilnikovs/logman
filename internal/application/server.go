@@ -9,6 +9,30 @@ import (
 // Router is alias to http.Handler
 type Router http.Handler
 
+type UiServer struct {
+	l   *slog.Logger
+	cfg UiServerConfiguration
+	r   Router
+}
+
+func NewUiServer(logger *slog.Logger, cfg UiServerConfiguration, r Router) *UiServer {
+	if logger == nil {
+		logger = NewDefaultJsonLogger()
+	}
+
+	return &UiServer{
+		l:   logger,
+		cfg: cfg,
+		r:   r,
+	}
+}
+
+func (s *UiServer) Run() error {
+	s.l.Info("Server is running", slog.String("port", s.cfg.Port))
+
+	return http.ListenAndServe(fmt.Sprintf(":%s", s.cfg.Port), s.r)
+}
+
 // ApiServer contains main things related to incoming input requests
 type ApiServer struct {
 	l   *slog.Logger
