@@ -32,10 +32,11 @@ type Validator interface {
 }
 
 type ServerData struct {
-	Name         string           `json:"name"`
-	Host         string           `json:"host"`
-	CredentialId int              `json:"credentialId"`
-	LogLocation  LogLocationModel `json:"logLocation"`
+	Name          string `json:"name"`
+	Host          string `json:"host"`
+	CredentialId  int    `json:"credentialId"`
+	LogFolderPath string `json:"logFolderPath"`
+	LogFormat     string `json:"logFormat"`
 }
 
 type ServerResponse struct {
@@ -102,13 +103,13 @@ func (s *ServerService) Create(ctx context.Context, data ServerData) (*ServerRes
 	now := time.Now()
 
 	server := &entity.Server{
-		Name:       data.Name,
-		Host:       data.Host,
-		Credential: *credential,
-		LogPath:    entity.LogFolderPath(data.LogLocation.Path),
-		LogFormat:  entity.LogFormat(data.LogLocation.Format),
-		CreatedAt:  now.Format(time.RFC3339),
-		UpdatedAt:  now.Format(time.RFC3339),
+		Name:          data.Name,
+		Host:          data.Host,
+		CredentialId:  credential.Id,
+		LogFolderPath: entity.LogFolderPath(data.LogFolderPath),
+		LogFormat:     entity.LogFormat(data.LogFormat),
+		CreatedAt:     now.Format(time.RFC3339),
+		UpdatedAt:     now.Format(time.RFC3339),
 	}
 
 	if err := s.v.Struct(server); err != nil {
@@ -164,9 +165,10 @@ func (s *ServerService) Update(ctx context.Context, id int, data ServerData) (*S
 
 	server.Name = data.Name
 	server.Host = data.Host
-	server.LogPath = entity.LogFolderPath(data.LogLocation.Path)
-	server.LogFormat = entity.LogFormat(data.LogLocation.Format)
+	server.LogFolderPath = entity.LogFolderPath(data.LogFolderPath)
+	server.LogFormat = entity.LogFormat(data.LogFormat)
 	server.UpdatedAt = now.Format(time.RFC3339)
+	server.CredentialId = data.CredentialId
 
 	if err := s.v.Struct(server); err != nil {
 		return nil, buildValidationError(err)
@@ -184,8 +186,8 @@ func createServerResponseFromServerEntity(s entity.Server) *ServerResponse {
 		Id:            s.Id,
 		Name:          s.Name,
 		Host:          s.Host,
-		CredentialId:  s.Credential.Id,
-		LogFolderPath: string(s.LogPath),
+		CredentialId:  s.CredentialId,
+		LogFolderPath: string(s.LogFolderPath),
 		LogFormat:     string(s.LogFormat),
 		CreatedAt:     s.CreatedAt,
 		UpdatedAt:     s.UpdatedAt,
