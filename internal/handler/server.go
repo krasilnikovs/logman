@@ -138,7 +138,7 @@ func (s *ServerHandlers) Update(w http.ResponseWriter, r *http.Request) {
 
 	response, err := s.serverService.Update(r.Context(), id, requestBody)
 
-	if errors.Is(err, service.ErrValidation{}) {
+	if errors.As(err, &service.ErrValidation{}) {
 		writeValidationJson(w, err.(service.ErrValidation))
 		return
 	}

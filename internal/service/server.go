@@ -69,10 +69,12 @@ func NewServerService(storage ServerStorager, credentialStorage CredentialStorag
 	}
 }
 
-func (l *ServerService) FetchById(ctx context.Context, id int) (*ServerResponse, error) {
-	server, err := l.storage.GetById(ctx, id)
+func (s *ServerService) FetchById(ctx context.Context, id int) (*ServerResponse, error) {
+	server, err := s.storage.GetById(ctx, id)
 
 	if err != nil {
+		s.l.Error("error during Server search by id", slog.String("error", err.Error()))
+
 		return nil, fmt.Errorf("error during Server search by id: %w", err)
 	}
 
@@ -88,6 +90,8 @@ func (s *ServerService) Create(ctx context.Context, data ServerData) (*ServerRes
 	credential, err := s.credentialStorage.GetById(ctx, data.CredentialId)
 
 	if err != nil {
+		s.l.Error("error during Credential search by id", slog.String("error", err.Error()))
+
 		return nil, fmt.Errorf("error during Credential search by id: %w", err)
 	}
 
@@ -112,6 +116,7 @@ func (s *ServerService) Create(ctx context.Context, data ServerData) (*ServerRes
 	}
 
 	if err := s.storage.Create(ctx, server); err != nil {
+		s.l.Error("error during creating server", slog.String("error", err.Error()))
 		return nil, fmt.Errorf("error during creating server: %w", err)
 	}
 
@@ -120,6 +125,7 @@ func (s *ServerService) Create(ctx context.Context, data ServerData) (*ServerRes
 
 func (s *ServerService) DeleteById(ctx context.Context, id int) error {
 	if err := s.storage.DeleteById(ctx, id); err != nil {
+		s.l.Error("delete by id failed", slog.String("error", err.Error()))
 		return fmt.Errorf("delete by id failed: %w", err)
 	}
 
@@ -130,7 +136,7 @@ func (s *ServerService) GetList(ctx context.Context, limit, page int) ([]ServerR
 	servers, err := s.storage.GetList(ctx, limit, page)
 
 	if err != nil {
-		slog.Error(err.Error())
+		s.l.Error("error during reading data from storage", slog.String("error", err.Error()))
 		return []ServerResponse{}, fmt.Errorf("error during reading data from storage: %w", err)
 	}
 
