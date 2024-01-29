@@ -2,9 +2,11 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
 	"log/slog"
 	"net/http"
+	"os"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -44,6 +46,32 @@ func registerRoutes(r *chi.Mux, cfg application.UiServerConfiguration, logger *s
 	r.Get("/", func(w http.ResponseWriter, r *http.Request) {
 
 		tmp, err := template.ParseFiles("web/template/index.html")
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		tmp.Execute(w, nil)
+	})
+
+	r.Get("/controllers/{filename}", func(w http.ResponseWriter, r *http.Request) {
+		fn := chi.URLParam(r, "filename")
+
+		content, err := os.ReadFile(fmt.Sprintf("web/controllers/%s", fn))
+
+		if err != nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/javascript")
+		w.WriteHeader(http.StatusOK)
+		w.Write(content)
+	})
+
+	r.Get("/servers", func(w http.ResponseWriter, r *http.Request) {
+		tmp, err := template.ParseFiles("web/template/servers/index.html")
 
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
